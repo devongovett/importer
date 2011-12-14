@@ -1,7 +1,7 @@
 {
   "name": "import",
   "description": "File importing for CoffeeScript and JavaScript",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "author": {
       "name": "Devon Govett",
       "email": "devongovett@gmail.com",
@@ -16,5 +16,6 @@
       "coffee-script": ">=1.0.1"
   },
   "engine": [ "node >= v0.4.0" ],
-  "main": "import.coffee"
+  "bin": { "import": "./cmd.js" },
+  "main": "import.js"
 }

@@ -20,6 +20,12 @@ In JavaScript, the `//import` directive is used instead of `#import`.
 * All imported files are placed at the top of the file requesting the import.
 * Compiling CoffeeScript and JavaScript source files are included out of the box.  You can add more 
   to the `compile.extensions` object.
+  
+## Command line usage
+
+When installed with `npm install import -g`, a command line tool called `import` will be made available.  To start a server
+to host your compiled code, just run `import mainfile.coffee`.  The `-p` or `--port` option can be used to change the port
+at which the server runs, the default being 8080.  If a second argument is given, the output will be written to a file.
 
 ## Server example
 
