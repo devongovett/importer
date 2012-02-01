@@ -92,8 +92,8 @@
     };
 
     File.prototype.parse = function(code, callback) {
-      var importRe, proceed;
-      var _this = this;
+      var importRe, proceed,
+        _this = this;
       importRe = /^(?:#|\/\/)import "(.+)"$/gm;
       this.dependancies = [];
       return (proceed = function() {

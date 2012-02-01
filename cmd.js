@@ -17,6 +17,7 @@ if (!mainfile) {
 if (output && output != '-p' && output != '--port') {
     compile(mainfile, function(err, code) {
         if (err) throw err;
+        code = "(function() {\n" + code + "\n}).call(this);"
         fs.writeFile(output, code);
     });
 }
