@@ -4,7 +4,7 @@ path = require 'path'
 
 class File    
     constructor: (@filename) ->
-        @dependancies = []
+        @dependencies = []
         @compiled = ''
     
     # holds references to loaded files    
@@ -12,6 +12,9 @@ class File
 
     # keep track of what files have already been imported
     imported = {}
+    
+    # the regular expression used to find import statements
+    importRe = /^(?:#|\/\/)import (".+");?$/gm
     
     # loads and parses files or returns them from the cache
     @load: (filename, isImport) ->
@@ -27,7 +30,12 @@ class File
         return file
     
     @extensions:
-        '.coffee': (code) -> coffee.compile code, bare: yes
+        '.coffee': (code) -> 
+            # convert CoffeeScript import comments into embedded 
+            # JavaScript comments to be parsed after it is compiled
+            code = code.replace(importRe, '`//import $1`')
+            coffee.compile code, bare: yes
+            
         '.js': (code) -> code
         
     resolve = (filename, callback) ->
@@ -78,61 +86,79 @@ class File
                     return callback "#{err} in #{@path}", this
                 
                 @mtime = +stat.mtime
-                @parse code, callback
-    
-    # parses and loads file dependancies    
-    parse: (code, callback) ->
-        importRe = /^(?:#|\/\/)import "(.+)"$/gm
-        @dependancies = []
-                
-        # parse all #import statements and load dependancies
+                @parse callback
+                    
+    # parses and loads file dependencies
+    parse: (callback) ->
+        @dependencies = []
+        importRe.lastIndex = 0 # reset the regex position
+        
+        # parse all #import statements and load dependencies
         do proceed = =>
-            if result = importRe.exec(code)
-                filename = result[1]
-                # relative dependancies should default to the 
+            if result = importRe.exec(@compiled)
+                filename = result[1].slice(1, -1)
+                
+                # relative dependencies should default to the 
                 # same directory as the parent
                 if filename[0] isnt '/'
                     filename = path.join(path.dirname(@path), filename)
                 
                 file = File.load(filename, true)
                 file.load (err, file) =>
-                    @dependancies.push(file)
                     return callback err, this if err
+                    
+                    # keep track of the offset and length of the import statement
+                    @dependencies.push
+                        offset: result.index
+                        length: result[0].length
+                        file: file
+                    
                     proceed()
             else
                 callback null, this
     
-    # recursively compiles all dependancies and itself into
+    # recursively compiles all dependencies and itself into
     # the final composite output            
     compile: (callback) ->
-        # make sure we don't import things more than once
-        # to avoid recursive imports
-        imported[@path] = true
-        
         # reload the file if necessary
         @load (err) =>
             return callback err if err
             
-            # compile all dependancies
-            code = []
-            deps = @dependancies.slice()
+            # make sure we don't import things more than once
+            # to avoid recursive imports
+            imported[@path] = true
             
+            # compile all dependencies
+            code = []
+            deps = [@dependencies...]
+            last = 0
+
             do proceed = =>
                 if deps.length
                     dep = deps.shift()
                     
                     # if the file has already been imported, just ignore it
-                    return proceed() if imported[dep.path]
+                    if imported[dep.file.path]
+                        last = dep.offset + dep.length + 1
+                        return proceed()
                     
-                    # compile the dependancy
-                    dep.compile (err, depCode) ->
+                    # include the code from this file between the 
+                    # previous import statement and this one
+                    if dep.offset > last
+                        code.push @compiled.slice(last, dep.offset)
+                    
+                    # move the last position forward
+                    last = dep.offset + dep.length + 1
+                                        
+                    # compile the dependency
+                    dep.file.compile (err, depCode) ->
                         return callback err if err
                         code.push depCode
                         proceed()
                         
                 else
                     # return the output
-                    code.push @compiled
+                    code.push @compiled.slice(last)
                     callback null, code.join '\n'
                     
 compile = (mainFile, fn) ->

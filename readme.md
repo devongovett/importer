@@ -17,7 +17,7 @@ In JavaScript, the `//import` directive is used instead of `#import`.
 * File extensions are optional and will be automatically resolved if not included.  
 * Files will only be included once in the resulting code, regardless of how many times a file is imported.
 * If used as a server, only modified files will be recompiled on subsequent requests.
-* All imported files are placed at the top of the file requesting the import.
+* Import statements can be placed anywhere and the dependency source code will replace it.
 * Compiling CoffeeScript and JavaScript source files are included out of the box.  You can add more 
   to the `compile.extensions` object.
   
