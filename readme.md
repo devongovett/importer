@@ -1,16 +1,20 @@
-File Importing for CoffeeScript and JavaScript
+File Importing for languages compiling into JavaScript
 ==============================================
 
-Ever wanted to have an `#import` statement in CoffeeScript or JavaScript that works like `#include` in other languages?
+Ever wanted to have an `#import` statement in your favorite language which
+compiles into JavaScript that works like `#include` in other languages?
 Well now you have one!  Importing files and concatenating them in the right place is now as easy as:
 
-    #import "name"
-    #import "another.coffee"
-    #import "somefile.js"
+    #import "some_js_file"
+    #import "another_one"
+    #import "even_coco_is_supported"
+    #import "and_livescript"
     
     # some code using the imported files here...
     
 In JavaScript, the `//import` directive is used instead of `#import`.  
+
+Be sure to install the languages you wish to use with `npm install -g`.
 
 ## Features
 
@@ -18,7 +22,7 @@ In JavaScript, the `//import` directive is used instead of `#import`.
 * Files will only be included once in the resulting code, regardless of how many times a file is imported.
 * If used as a server, only modified files will be recompiled on subsequent requests.
 * Import statements can be placed anywhere and the dependency source code will replace it.
-* Compiling CoffeeScript and JavaScript source files are included out of the box.  You can add more 
+* Compiling CoffeeScript, JavaScript, Coco, and LiveScript source files are included out of the box.  You can add more 
   to the `compile.extensions` object.
   
 ## Command line usage
@@ -46,7 +50,19 @@ at which the server runs, the default being 8080.  If a second argument is given
 Currently, importing CoffeeScript and JavaScript files are supported but you can extend that to other languages that compile to
 JavaScript by adding an entry to the `compile.extensions` object.
 
-    compile.extensions['.lua'] = (code) -> lua.compile(code)
+    compile.extensions['.lua'] =
+        compile: (code) -> lua.compile(code)
+        importRe: /^--import (".+")$/gm
+
+## Developing
+
+To compile and watch:
+
+    coffee -wco . src/
+
+To run the tests:
+
+    npm test
     
 ## License
 

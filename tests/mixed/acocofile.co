@@ -1,0 +1,10 @@
+#import "acoffeefile"
+
+x = "hi from"
+y = "shittt"
+do ->
+  x = "fuuuu"
+  y := "coco"
+
+console.log "#{x} #{y}"
+

@@ -1,6 +1,6 @@
 {
   "name": "import",
-  "description": "File importing for CoffeeScript and JavaScript",
+  "description": "import syntax for client-side code",
   "version": "0.3.0",
   "author": {
       "name": "Devon Govett",
@@ -13,9 +13,20 @@
   },
   "bugs": "http://github.com/devongovett/import/issues",
   "dependencies": {
-      "coffee-script": ">=1.0.1"
+      "async": "~>0.1.22"
   },
-  "engine": [ "node >= v0.4.0" ],
-  "bin": { "import": "./cmd.js" },
+  "devDependencies": {
+      "coffee-script": "~>1.3.3",
+      "temp": "~>0.4.0"
+  },
+  "scripts": {
+      "test": "node test.js"
+  },
+  "engines": {
+      "node": "~> 0.8.0"
+  },
+  "bin": {
+      "import": "./cmd.js"
+  },
   "main": "import.js"
 }
