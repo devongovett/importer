@@ -23,7 +23,7 @@
       }
       file.mtime = +stat.mtime;
       return fs.readFile(full_path, 'utf8', function(err, source) {
-        var funcs, import_string, parser, re, result;
+        var import_string, parser, re, result;
         if (err) {
           cb(err);
           return;
@@ -37,22 +37,14 @@
         }
         re = parser.import_re;
         re.lastIndex = 0;
-        funcs = [];
         while (result = re.exec(source)) {
           import_string = result[1].slice(1, -1);
           if (import_string[0] !== '/') {
             import_string = path.join(path.dirname(full_path), import_string);
-            funcs.push(async.apply(resolvePath, import_string));
           }
+          file.deps.push(import_string);
         }
-        return async.parallel(funcs, function(err, results) {
-          if (err) {
-            cb(err);
-            return;
-          }
-          file.deps = results;
-          return cb(null, file);
-        });
+        return cb(null, file);
       });
     });
   };
@@ -93,26 +85,40 @@
 
   options = null;
 
-  resolveDependencyChain = function() {
+  resolveDependencyChain = function(root, doneResolvingDependencyChain) {
     var deps, processNode, seen;
     deps = [];
     seen = {};
-    processNode = function(node) {
-      var dep, dep_path, _i, _len, _ref;
-      _ref = node.deps;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        dep_path = _ref[_i];
-        dep = cached_files[dep_path];
-        if (seen[dep.path] != null) {
-          continue;
+    processNode = function(node, doneProcessingNode) {
+      return async.map(node.deps, resolvePath, function(err, resolved_deps) {
+        var dep, dep_path, funcs, _i, _len;
+        if (err) {
+          doneResolvingDependencyChain(err);
+          return;
         }
-        seen[dep.path] = true;
-        processNode(dep);
-      }
-      return deps.push(node);
+        funcs = [];
+        for (_i = 0, _len = resolved_deps.length; _i < _len; _i++) {
+          dep_path = resolved_deps[_i];
+          dep = cached_files[dep_path];
+          if (seen[dep.path] != null) {
+            continue;
+          }
+          seen[dep.path] = true;
+          funcs.push(async.apply(processNode, dep));
+        }
+        return async.parallel(funcs, function(err, results) {
+          if (err) {
+            doneResolvingDependencyChain(err);
+            return;
+          }
+          deps.push(node);
+          return doneProcessingNode();
+        });
+      });
     };
-    processNode(root);
-    return deps;
+    return processNode(root, function() {
+      return doneResolvingDependencyChain(null, deps);
+    });
   };
 
   collectDependencies = function(import_string, doneCollectingDependencies) {
@@ -155,22 +161,27 @@
   compile = function(_options, cb) {
     options = _options;
     return collectDependencies(options.mainfile, function(err) {
-      var dep, dependency_chain, output;
       if (err) {
         cb(err);
         return;
       }
-      dependency_chain = resolveDependencyChain(root);
-      output = ((function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = dependency_chain.length; _i < _len; _i++) {
-          dep = dependency_chain[_i];
-          _results.push(dep.compiled_js);
+      return resolveDependencyChain(root, function(err, dependency_chain) {
+        var dep, output;
+        if (err) {
+          cb(err);
+          return;
         }
-        return _results;
-      })()).join("\n");
-      return cb(null, output);
+        output = ((function() {
+          var _i, _len, _results;
+          _results = [];
+          for (_i = 0, _len = dependency_chain.length; _i < _len; _i++) {
+            dep = dependency_chain[_i];
+            _results.push(dep.compiled_js);
+          }
+          return _results;
+        })()).join("\n");
+        return cb(null, output);
+      });
     });
   };
 

@@ -26,20 +26,14 @@ parseFile = (full_path, cb) ->
       # get the list of dependencies
       re = parser.import_re
       re.lastIndex = 0
-      funcs = []
       while result = re.exec(source)
         import_string = result[1].slice(1, -1)
         # relative dependencies should default to the
         # same directory as the parent
         if import_string[0] isnt '/'
           import_string = path.join(path.dirname(full_path), import_string)
-          funcs.push async.apply(resolvePath, import_string)
-      async.parallel funcs, (err, results) ->
-        if err
-          cb err
-          return
-        file.deps = results
-        cb null, file
+        file.deps.push import_string
+      cb null, file
 
 
 resolvePath = (import_string, doneResolvingPath) ->
@@ -66,20 +60,29 @@ cached_files = {}
 root = null
 options = null
 
-resolveDependencyChain = ->
+resolveDependencyChain = (root, doneResolvingDependencyChain) ->
   deps = []
   seen = {}
-  processNode = (node) ->
-    for dep_path in node.deps
-      dep = cached_files[dep_path]
-      if seen[dep.path]?
-        continue
-      seen[dep.path] = true
-      # add deps first, then itself
-      processNode dep
-    deps.push node
-  processNode(root)
-  return deps
+  processNode = (node, doneProcessingNode) ->
+    async.map node.deps, resolvePath, (err, resolved_deps) ->
+      if err
+        doneResolvingDependencyChain err
+        return
+      funcs = []
+      for dep_path in resolved_deps
+        dep = cached_files[dep_path]
+        if seen[dep.path]?
+          continue
+        seen[dep.path] = true
+        funcs.push async.apply(processNode, dep)
+      async.parallel funcs, (err, results) ->
+        if err
+          doneResolvingDependencyChain err
+          return
+        deps.push node
+        doneProcessingNode()
+  processNode root, ->
+    doneResolvingDependencyChain null, deps
 
 collectDependencies = (import_string, doneCollectingDependencies) ->
   resolvePath import_string, (err, canonical_path) ->
@@ -117,9 +120,12 @@ compile = (_options, cb) ->
     if err
       cb(err)
       return
-    dependency_chain = resolveDependencyChain(root)
-    output = (dep.compiled_js for dep in dependency_chain).join("\n")
-    cb(null, output)
+    resolveDependencyChain root, (err, dependency_chain) ->
+      if err
+        cb(err)
+        return
+      output = (dep.compiled_js for dep in dependency_chain).join("\n")
+      cb(null, output)
 
 compile.extensions = parsers =
   '.coffee':
