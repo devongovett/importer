@@ -104,7 +104,10 @@
         process.stdout.write(msg);
       }
       process.stdout.write("\n" + pass_count + " passed, " + fail_count + " failed.\n");
-      return fs.unlink(tmp_js_file);
+      fs.unlink(tmp_js_file);
+      if (fail_count > 0) {
+        return process.exit(1);
+      }
     });
   });
 

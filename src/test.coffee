@@ -92,3 +92,5 @@ fs.readdir tests_dir, (err, files) ->
       process.stdout.write(msg)
     process.stdout.write "\n#{pass_count} passed, #{fail_count} failed.\n"
     fs.unlink tmp_js_file
+    if fail_count > 0
+      process.exit(1)
