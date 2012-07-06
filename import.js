@@ -32,7 +32,7 @@
         try {
           file.compiled_js = parser.compile(source);
         } catch (err) {
-          cb(err);
+          cb("" + full_path + "\n" + err);
           return;
         }
         re = parser.import_re;

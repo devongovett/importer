@@ -67,7 +67,7 @@ if (port || !output) {
     
         compile(options, function(err, code) {
             if (err)
-                res.end('throw "' + (err).replace(/"/g, "\\\"") + '"');
+                res.end('throw unescape("' + escape(err.toString()) + '");');
             else
                 res.end(code);
         });
