@@ -1,2 +1,2 @@
 console.log("Three module");
-Three = function() { console.log("Three function"); };
+var Three = function() { console.log("Three function"); };

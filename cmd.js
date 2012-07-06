@@ -8,6 +8,7 @@ var http = require('http'),
 var switches = [
     ['-h', '--help', "shows this help section"],
     ['-p', '--port NUMBER', "start a server to serve the file on this port"],
+    ['-b', '--bare', "compile without a top-level function wrapper"],
 ];
 
 var parser = new optparse.OptionParser(switches);
@@ -16,7 +17,7 @@ var printUsage = function() {
     parser.banner = "Usage: import input_file [output_file] [options]"
     console.log(parser.toString());
     console.log('\nIf an output file is not provided, a server will be started at');
-    console.log('at the port provided by the --port or -p option or port 8080 by default.')
+    console.log('the port provided by the --port or -p option or 8080 by default.')
 };
 
 parser.on('help', function() {
@@ -24,9 +25,9 @@ parser.on('help', function() {
     process.exit(1);
 });
 
-var mainfile;
+var options = {};
 parser.on(0, function(arg) {
-    mainfile = arg;
+    options.mainfile = arg;
 });
 
 var output;
@@ -39,15 +40,20 @@ parser.on("port", function(name, value) {
     port = value;
 });
 
+var options = {};
+parser.on("bare", function() {
+    options.bare = true;
+});
+
 parser.parse(process.argv.splice(2));
 
-if (!mainfile) {
+if (!options.mainfile) {
     printUsage();
     process.exit(1);
 }
 
 if (output) {
-    compile(mainfile, function(err, code) {
+    compile(options, function(err, code) {
         if (err) throw err;
         fs.writeFile(output, code);
     });
@@ -59,7 +65,7 @@ if (port || !output) {
     http.createServer(function(req, res) {
         res.writeHead(200);
     
-        compile(mainfile, function(err, code) {
+        compile(options, function(err, code) {
             if (err)
                 res.end('throw "' + (err).replace(/"/g, "\\\"") + '"');
             else

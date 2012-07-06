@@ -64,6 +64,7 @@ resolvePath = (import_string, doneResolvingPath) ->
 
 cached_files = {}
 root = null
+options = null
 
 resolveDependencyChain = ->
   deps = []
@@ -110,8 +111,9 @@ collectDependencies = (import_string, doneCollectingDependencies) ->
       parseAndHandleErr callNext
 
 
-compile = (main_file, cb) ->
-  collectDependencies main_file, (err) ->
+compile = (_options, cb) ->
+  options = _options
+  collectDependencies options.mainfile, (err) ->
     if err
       cb(err)
       return
@@ -121,19 +123,23 @@ compile = (main_file, cb) ->
 
 compile.extensions = parsers =
   '.coffee':
-    compile: (code) -> require('coffee-script').compile code, bare: yes
+    compile: (code) -> require('coffee-script').compile code, bare: options.bare
     import_re: /^#import (".+")$/gm
 
   '.js':
-    compile: (code) -> code
+    compile: (code) ->
+      if options.bare
+        code
+      else
+        "(function(){\n#{code}}).call(this);"
     import_re: /^\/\/import (".+");?$/gm
 
   '.co':
-    compile: (code) -> require('coco').compile code, bare: yes
+    compile: (code) -> require('coco').compile code, bare: options.bare
     import_re: /^#import (".+")$/gm
 
   '.ls':
-    compile: (code) -> require('LiveScript').compile code, bare: yes
+    compile: (code) -> require('LiveScript').compile code, bare: options.bare
     import_re: /^#import (".+")$/gm
 
 module.exports = compile

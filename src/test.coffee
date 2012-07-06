@@ -13,32 +13,36 @@ fs.readdir tests_dir, (err, files) ->
   doTest = (test_dir, testDone) ->
     main_file = path.join(tests_dir, test_dir, "test")
     expect_file = path.join(tests_dir, test_dir, "expected.txt")
+    switches_file = path.join(tests_dir, test_dir, "switches.txt")
 
     do (exec_result=null, expected_output=null) ->
       execTest = (cb) ->
-        temp.open "", (err, tmp_js_file) ->
-          exec "node ./cmd.js #{main_file} #{tmp_js_file.path}", (err, stdout, stderr) ->
-            if stderr.length > 0
-              exec_result =
-                compile: false
-                msg: stderr
-              cb()
-
-            exec "node #{tmp_js_file.path}", (err, stdout, stderr) ->
-              fs.close tmp_js_file.fd, ->
-                fs.unlink tmp_js_file.path
-
+        fs.readFile switches_file, 'utf8', (err, switches) ->
+          switches = (switches || "").replace(/\n/g, " ")
+          temp.open "", (err, tmp_js_file) ->
+            cmdline = "node ./cmd.js #{switches} #{main_file} #{tmp_js_file.path}"
+            exec cmdline, (err, stdout, stderr) ->
               if stderr.length > 0
                 exec_result =
-                  compile: true
-                  run: false
+                  compile: false
                   msg: stderr
-              else
-                exec_result =
-                  compile: true
-                  run: true
-                  output: stdout
-              cb()
+                cb()
+
+              exec "node #{tmp_js_file.path}", (err, stdout, stderr) ->
+                fs.close tmp_js_file.fd, ->
+                  fs.unlink tmp_js_file.path
+
+                if stderr.length > 0
+                  exec_result =
+                    compile: true
+                    run: false
+                    msg: stderr
+                else
+                  exec_result =
+                    compile: true
+                    run: true
+                    output: stdout
+                cb()
 
       readExpected = (cb) -> fs.readFile expect_file, 'utf8', (err, out) ->
         expected_output = out

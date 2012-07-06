@@ -25,39 +25,45 @@
   fs.readdir(tests_dir, function(err, files) {
     var doTest;
     doTest = function(test_dir, testDone) {
-      var expect_file, main_file;
+      var expect_file, main_file, switches_file;
       main_file = path.join(tests_dir, test_dir, "test");
       expect_file = path.join(tests_dir, test_dir, "expected.txt");
+      switches_file = path.join(tests_dir, test_dir, "switches.txt");
       return (function(exec_result, expected_output) {
         var execTest, readExpected;
         execTest = function(cb) {
-          return temp.open("", function(err, tmp_js_file) {
-            return exec("node ./cmd.js " + main_file + " " + tmp_js_file.path, function(err, stdout, stderr) {
-              if (stderr.length > 0) {
-                exec_result = {
-                  compile: false,
-                  msg: stderr
-                };
-                cb();
-              }
-              return exec("node " + tmp_js_file.path, function(err, stdout, stderr) {
-                fs.close(tmp_js_file.fd, function() {
-                  return fs.unlink(tmp_js_file.path);
-                });
+          return fs.readFile(switches_file, 'utf8', function(err, switches) {
+            switches = (switches || "").replace(/\n/g, " ");
+            return temp.open("", function(err, tmp_js_file) {
+              var cmdline;
+              cmdline = "node ./cmd.js " + switches + " " + main_file + " " + tmp_js_file.path;
+              return exec(cmdline, function(err, stdout, stderr) {
                 if (stderr.length > 0) {
                   exec_result = {
-                    compile: true,
-                    run: false,
+                    compile: false,
                     msg: stderr
                   };
-                } else {
-                  exec_result = {
-                    compile: true,
-                    run: true,
-                    output: stdout
-                  };
+                  cb();
                 }
-                return cb();
+                return exec("node " + tmp_js_file.path, function(err, stdout, stderr) {
+                  fs.close(tmp_js_file.fd, function() {
+                    return fs.unlink(tmp_js_file.path);
+                  });
+                  if (stderr.length > 0) {
+                    exec_result = {
+                      compile: true,
+                      run: false,
+                      msg: stderr
+                    };
+                  } else {
+                    exec_result = {
+                      compile: true,
+                      run: true,
+                      output: stdout
+                    };
+                  }
+                  return cb();
+                });
               });
             });
           });

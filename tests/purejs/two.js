@@ -1,5 +1,5 @@
 //import "three"
 
 console.log("Two module");
-Two = function() { console.log("Two function"); };
+var Two = function() { console.log("Two function"); };
 Three();
