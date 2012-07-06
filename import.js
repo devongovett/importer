@@ -147,6 +147,9 @@
       if ((cached_file = cached_files[canonical_path]) != null) {
         return fs.stat(canonical_path, function(err, stat) {
           if (cached_file.mtime === +stat.mtime) {
+            if (root == null) {
+              root = cached_file;
+            }
             return callNext(cached_file);
           } else {
             return parseAndHandleErr(callNext);
@@ -160,6 +163,7 @@
 
   compile = function(_options, cb) {
     options = _options;
+    root = null;
     return collectDependencies(options.mainfile, function(err) {
       if (err) {
         cb(err);

@@ -107,6 +107,7 @@ collectDependencies = (import_string, doneCollectingDependencies) ->
     if (cached_file = cached_files[canonical_path])?
       fs.stat canonical_path, (err, stat) ->
         if cached_file.mtime is +stat.mtime
+          root ?= cached_file
           callNext cached_file
         else
           parseAndHandleErr callNext
@@ -116,6 +117,7 @@ collectDependencies = (import_string, doneCollectingDependencies) ->
 
 compile = (_options, cb) ->
   options = _options
+  root = null
   collectDependencies options.mainfile, (err) ->
     if err
       cb(err)
