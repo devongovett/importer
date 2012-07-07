@@ -1,6 +1,6 @@
 {
   "name": "import",
-  "description": "import syntax for client-side code",
+  "description": "build tool to provide import syntax for client-side code",
   "version": "0.3.0",
   "author": {
       "name": "Devon Govett",
