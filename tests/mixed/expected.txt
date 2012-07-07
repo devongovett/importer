@@ -1,0 +1,5 @@
+hi from js
+hi from livescript
+hi from coffee
+hi from coco
+hi from main.ls
