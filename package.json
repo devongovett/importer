@@ -13,11 +13,15 @@
   },
   "bugs": "http://github.com/devongovett/import/issues",
   "dependencies": {
+      "optimist": ">=0.3.4"
+  },
   "devDependencies": {
       "coffee-script": ">=1.0"
   },
+  "scripts": {
+      "prepublish": "build.sh"
   },
   "engine": [ "node >= v0.4.0" ],
-  "bin": { "import": "./cmd.js" },
-  "main": "import.js"
+  "bin": { "import": "js/cmd.js" },
+  "main": "js/import.js"
 }
