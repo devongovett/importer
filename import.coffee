@@ -14,7 +14,7 @@ class File
     imported = {}
     
     # the regular expression used to find import statements
-    importRe = /^(?:#|\/\/)import (".+");?$/gm
+    importRe = /(?:#|\/\/)import (".+"|<.+>);?$/gm
     
     # loads and parses files or returns them from the cache
     @load: (filename, isImport) ->
