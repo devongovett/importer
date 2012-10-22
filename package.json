@@ -13,7 +13,9 @@
   },
   "bugs": "http://github.com/devongovett/import/issues",
   "dependencies": {
-      "coffee-script": ">=1.0.1"
+  "devDependencies": {
+      "coffee-script": ">=1.0"
+  },
   },
   "engine": [ "node >= v0.4.0" ],
   "bin": { "import": "./cmd.js" },

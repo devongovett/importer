@@ -1,4 +1,3 @@
-coffee = require 'coffee-script'
 fs = require 'fs'
 path = require 'path'
 
@@ -34,7 +33,7 @@ class File
             # convert CoffeeScript import comments into embedded 
             # JavaScript comments to be parsed after it is compiled
             code = code.replace(importRe, '`//import $1`')
-            coffee.compile code, bare: yes
+            require('coffee-script').compile(code, bare: yes)
             
         '.js': (code) -> code
         
