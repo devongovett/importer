@@ -8,6 +8,10 @@ class File
     
     # holds references to loaded files    
     @files: {}
+    
+    # framework search path (by default, a frameworks 
+    # directory inside the current directory)
+    @frameworkPath: "frameworks/"
 
     # keep track of what files have already been imported
     imported = {}
@@ -97,6 +101,9 @@ class File
             if result = importRe.exec(@compiled)
                 filename = result[1].slice(1, -1)
                 
+                if result[1][0] is '<'
+                    filename = path.join(File.frameworkPath, filename)
+                
                 # relative dependencies should default to the 
                 # same directory as the parent
                 if filename[0] isnt '/'
@@ -164,4 +171,7 @@ compile = (mainFile, fn) ->
     File.load(mainFile).compile(fn)
     
 compile.extensions = File.extensions
+Object.defineProperty compile, 'frameworkPath',
+    set: (v) -> File.frameworkPath = v
+    
 module.exports = compile
