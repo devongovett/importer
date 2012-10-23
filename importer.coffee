@@ -167,11 +167,9 @@ class File
                     code.push @compiled.slice(last)
                     callback null, code.join '\n'
                     
-compile = (mainFile, fn) ->
+exports.build = (mainFile, fn) ->
     File.load(mainFile).compile(fn)
     
-compile.extensions = File.extensions
-Object.defineProperty compile, 'frameworkPath',
+exports.extensions = File.extensions
+Object.defineProperty exports, 'frameworkPath',
     set: (v) -> File.frameworkPath = v
-    
-module.exports = compile

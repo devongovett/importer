@@ -1,9 +1,9 @@
-compile = require './import'
+importer = require './importer'
 http = require 'http'
 fs = require 'fs'
 
 {argv} = require('optimist')
-    .usage('Usage: import input_file [output_file] [options]')
+    .usage('Usage: importer input_file [output_file] [options]')
      # require input_file
     .demand(1)
     # describe port option
@@ -16,10 +16,10 @@ fs = require 'fs'
     .default('f', './frameworks')
             
 [input_file, output_file] = argv._
-compile.frameworkPath = argv.frameworks
+importer.frameworkPath = argv.frameworks
 
 if output_file
-    compile input_file, (err, code) ->
+    importer.build input_file, (err, code) ->
         throw err if err
         fs.writeFile(output_file, code)
         
@@ -27,7 +27,7 @@ else
     server = http.createServer (req, res) ->
         res.writeHead(200)
         
-        compile input_file, (err, code) ->
+        importer.build input_file, (err, code) ->
             if err
                 res.end 'throw "' + (err).replace(/"/g, "\\\"") + '"'
             else

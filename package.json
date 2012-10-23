@@ -1,7 +1,7 @@
 {
-  "name": "import",
+  "name": "importer",
   "description": "File importing for CoffeeScript and JavaScript",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "author": {
       "name": "Devon Govett",
       "email": "devongovett@gmail.com",
@@ -21,7 +21,7 @@
   "scripts": {
       "prepublish": "build.sh"
   },
-  "engine": [ "node >= v0.4.0" ],
-  "bin": { "import": "js/cmd.js" },
-  "main": "js/import.js"
+  "engine": [ "node >= v0.6.0" ],
+  "bin": { "importer": "js/cmd.js" },
+  "main": "js/importer.js"
 }
