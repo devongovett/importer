@@ -19,23 +19,23 @@ In JavaScript, the `//import` directive is used instead of `#import`.
 * If used as a server, only modified files will be recompiled on subsequent requests.
 * Import statements can be placed anywhere and the dependency source code will replace it.
 * Compiling CoffeeScript and JavaScript source files are included out of the box.  You can add more 
-  to the `compile.extensions` object.
+  to the `importer.extensions` object.
   
 ## Command line usage
 
-When installed with `npm install import -g`, a command line tool called `import` will be made available.  To start a server
-to host your compiled code, just run `import mainfile.coffee`.  The `-p` or `--port` option can be used to change the port
+When installed with `npm install importer -g`, a command line tool called `importer` will be made available.  To start a server
+to host your compiled code, just run `importer mainfile.coffee`.  The `-p` or `--port` option can be used to change the port
 at which the server runs, the default being 8080.  If a second argument is given, the output will be written to a file.
 
 ## Server example
 
     http = require 'http'
-    compile = require 'import'
+    importer = require 'importer'
 
     server = http.createServer (req, res) ->
         res.writeHead(200)
     
-        compile 'mainfile.coffee', (err, code) ->
+        importer.build 'mainfile.coffee', (err, code) ->
             if err
                 res.end 'throw "' + (err).replace(/"/g, "\\\"") + '"'
             else
@@ -44,10 +44,10 @@ at which the server runs, the default being 8080.  If a second argument is given
     server.listen(8080)
 
 Currently, importing CoffeeScript and JavaScript files are supported but you can extend that to other languages that compile to
-JavaScript by adding an entry to the `compile.extensions` object.
+JavaScript by adding an entry to the `importer.extensions` object.
 
-    compile.extensions['.lua'] = (code) -> lua.compile(code)
+    importer.extensions['.lua'] = (code) -> lua.compile(code)
     
 ## License
 
-The `import` module is licensed under the MIT license.
+The `importer` module is licensed under the MIT license.
