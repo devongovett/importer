@@ -3,13 +3,19 @@ http = require 'http'
 fs = require 'fs'
 
 {argv} = require('optimist')
-    .usage('Usage: importer input_file [output_file] [options]')
+    .usage('''
+        Usage: $0 input_file [output_file] [options]
+        
+        If called with no options, input_file will be compiled and executed.
+    ''')
+    
      # require input_file
     .demand(1)
+    
     # describe port option
     .alias('p', 'port')
     .describe('p', 'Port to start server on')
-    .default('p', 8080)
+    
     # describe frameworks option
     .alias('f', 'frameworks')
     .describe('f', 'Path to frameworks directory')
@@ -18,12 +24,14 @@ fs = require 'fs'
 [input_file, output_file] = argv._
 importer.frameworkPath = argv.frameworks
 
+# output to file
 if output_file
     importer.build input_file, (err, code) ->
         throw err if err
         fs.writeFile(output_file, code)
         
-else
+# start a server
+else if argv.port
     server = http.createServer (req, res) ->
         res.writeHead(200)
         
@@ -35,3 +43,7 @@ else
                 
     server.listen(argv.port)
     console.log 'Server listening at port ' + argv.port
+    
+# execute
+else
+    importer.require input_file
