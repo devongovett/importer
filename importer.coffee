@@ -5,6 +5,7 @@ class File
     constructor: (@filename) ->
         @dependencies = []
         @compiled = ''
+        @sync = false
     
     # holds references to loaded files    
     @files: {}
@@ -31,6 +32,11 @@ class File
         file = new File(filename)
         @files[filename] = file
         return file
+        
+    @loadSync: (filename) ->
+        file = @load filename
+        file.sync = true
+        return file
     
     @extensions:
         '.coffee': (code) -> 
@@ -41,37 +47,46 @@ class File
             
         '.js': (code) -> code
         
-    resolve = (filename, callback) ->
-        fullname = path.resolve filename
+    resolve: (callback) ->
+        fullname = path.resolve @filename
         
         # if the filename already has an extension, just use that
         if (ext = path.extname(fullname)) of File.extensions
-            return check filename, fullname, ext, callback
+            return @check fullname, ext, callback
         
         # try each of the supported extensions
         exts = Object.keys File.extensions
-        do proceed = ->
+        do proceed = =>
             if exts.length
                 ext = exts.shift()
-                check filename, fullname + ext, ext, callback, proceed
+                @check fullname + ext, ext, callback, proceed
             else
-                callback '"' + filename + '" could not be found.'
+                callback '"' + @filename + '" could not be found.'
                 
-    check = (filename, filepath, ext, callback, proceed) ->
+    check: (filepath, ext, callback, proceed) ->
         # make sure the file exists and isn't a directory
-        fs.stat filepath, (err, stat) ->
+        @fs 'stat', filepath, (err, stat) =>
             if err or stat.isDirectory()
                 return proceed() if proceed
-                return callback '"' + filename + '" could not be found.'
+                return callback '"' + @filename + '" could not be found.'
 
             # resolve symlinks
-            fs.realpath filepath, (err, realpath) ->
+            @fs 'realpath', filepath, (err, realpath) ->
                 callback err, realpath, ext, stat
-    
+                
+    fs: (method, args..., callback) ->
+        if @sync
+            try
+                callback null, fs[method + 'Sync'] args...
+            catch err
+                callback err
+        else
+            fs[method] args..., callback
+                
     # actually reads the file contents and compiles CoffeeScript to JS
     load: (callback) ->
         # resolve the path
-        resolve @filename, (err, path, @ext, stat) =>
+        @resolve (err, path, @ext, stat) =>
             return callback err, this if err
             
             # if the file and path haven't changed, use the cache
@@ -79,7 +94,7 @@ class File
             @path = path
          
             # actually read the file
-            fs.readFile @path, 'utf8', (err, code) =>
+            @fs 'readFile', @path, 'utf8', (err, code) =>
                 return callback err if err
                 
                 # catch compile errors
@@ -166,10 +181,28 @@ class File
                     # return the output
                     code.push @compiled.slice(last)
                     callback null, code.join '\n'
-                    
+
+# exported module
+exports.extensions = File.extensions
+Object.defineProperty exports, 'frameworkPath',
+    set: (v) -> File.frameworkPath = v                    
+
 exports.build = (mainFile, fn) ->
     File.load(mainFile).compile(fn)
     
-exports.extensions = File.extensions
-Object.defineProperty exports, 'frameworkPath',
-    set: (v) -> File.frameworkPath = v
+exports.require = (mainFile) ->
+    # even though this looks async, it's actually synchronous
+    file = File.loadSync(mainFile)
+    ret = null
+    file.compile (err, code) ->
+        throw err if err
+        
+        Module = require 'module'
+        
+        mod = new Module(mainFile, module)
+        mod.filename = file.path
+        mod.paths = Module._nodeModulePaths(path.dirname(file.path))
+        
+        ret = mod._compile(code, file.path)
+        
+    return ret
