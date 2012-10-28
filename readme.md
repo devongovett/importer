@@ -23,9 +23,11 @@ In JavaScript, the `//import` directive is used instead of `#import`.
   
 ## Command line usage
 
-When installed with `npm install importer -g`, a command line tool called `importer` will be made available.  To start a server
-to host your compiled code, just run `importer mainfile.coffee`.  The `-p` or `--port` option can be used to change the port
-at which the server runs, the default being 8080.  If a second argument is given, the output will be written to a file.
+When installed with `npm install importer -g`, a command line tool called `importer` will be made available.
+
+1. To start a server to host your compiled code, run `importer mainfile.coffee --port 8080`
+2. To output to a file, run `importer mainfile.coffee main.js`
+3. To compile and execute, run `importer mainfile.coffee`
 
 ## Server example
 
