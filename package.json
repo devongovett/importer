@@ -19,7 +19,7 @@
       "coffee-script": ">=1.0"
   },
   "scripts": {
-      "prepublish": "build.sh"
+      "prepublish": "./build.sh"
   },
   "engine": [ "node >= v0.6.0" ],
   "bin": { "importer": "js/cmd.js" },

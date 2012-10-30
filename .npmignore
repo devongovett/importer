@@ -1,0 +1,4 @@
+*.coffee
+build.sh
+.git/
+.gitignore
