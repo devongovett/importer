@@ -1,7 +1,7 @@
 {
   "name": "importer",
   "description": "File importing for CoffeeScript and JavaScript",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "author": {
       "name": "Devon Govett",
       "email": "devongovett@gmail.com",
