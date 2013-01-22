@@ -37,7 +37,7 @@ else if argv.port
         
         importer.build input_file, (err, code) ->
             if err
-                res.end 'throw "' + (err).replace(/"/g, "\\\"") + '"'
+                res.end 'throw "' + err.message.replace(/"/g, "\\\"") + '"'
             else
                 res.end code
                 

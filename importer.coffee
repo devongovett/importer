@@ -61,14 +61,14 @@ class File
                 ext = exts.shift()
                 @check fullname + ext, ext, callback, proceed
             else
-                callback '"' + @filename + '" could not be found.'
+                callback new Error '"' + @filename + '" could not be found.'
                 
     check: (filepath, ext, callback, proceed) ->
         # make sure the file exists and isn't a directory
         @fs 'stat', filepath, (err, stat) =>
             if err or stat.isDirectory()
                 return proceed() if proceed
-                return callback '"' + @filename + '" could not be found.'
+                return callback new Error '"' + @filename + '" could not be found.'
 
             # resolve symlinks
             @fs 'realpath', filepath, (err, realpath) ->
