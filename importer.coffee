@@ -76,10 +76,16 @@ class File
                 
     fs: (method, args..., callback) ->
         if @sync
+            called = false
             try
+                called = true
                 callback null, fs[method + 'Sync'] args...
             catch err
-                callback err
+                unless called
+                    called = true
+                    callback err
+                else
+                    throw err
         else
             fs[method] args..., callback
                 
@@ -124,7 +130,8 @@ class File
                 if filename[0] isnt '/'
                     filename = path.join(path.dirname(@path), filename)
                 
-                file = File.load(filename, true)
+                load = if @sync then 'loadSync' else 'load'
+                file = File[load](filename, true)
                 file.load (err, file) =>
                     return callback err, this if err
                     
@@ -185,7 +192,7 @@ class File
 # exported module
 exports.extensions = File.extensions
 Object.defineProperty exports, 'frameworkPath',
-    set: (v) -> File.frameworkPath = v                    
+    set: (v) -> File.frameworkPath = v
 
 exports.build = (mainFile, fn) ->
     File.load(mainFile).compile(fn)
