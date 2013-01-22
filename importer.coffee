@@ -123,7 +123,7 @@ class File
                 filename = result[1].slice(1, -1)
                 
                 if result[1][0] is '<'
-                    filename = path.join(File.frameworkPath, filename)
+                    filename = path.join(path.resolve(File.frameworkPath), filename)
                 
                 # relative dependencies should default to the 
                 # same directory as the parent
