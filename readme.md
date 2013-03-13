@@ -1,25 +1,32 @@
-File Importing for CoffeeScript and JavaScript
-==============================================
+Importer
+========
 
-Ever wanted to have an `#import` statement in CoffeeScript or JavaScript that works like `#include` in other languages?
-Well now you have one!  Importing files and concatenating them in the right place is now as easy as:
+Importer adds an `#import` statement to JavaScript based languages including CoffeeScript that works like 
+`#include` in C-based languages.  It compiles files into JavaScript, concatenates them together in the 
+places you've defined, generates [source maps](https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k), 
+and manages recompilation for only those files that have changed, speeding up builds for large projects.
 
-    #import "name"
-    #import "another.coffee"
-    #import "somefile.js"
+```coffeescript
+#import "name"
+#import "another.coffee"
+#import "somefile.js"
     
-    # some code using the imported files here...
+# some code using the imported files here...
+```
     
-In JavaScript, the `//import` directive is used instead of `#import`.  
+In JavaScript, the `//import` directive can be used instead of `#import`.  
 
 ## Features
 
-* File extensions are optional and will be automatically resolved if not included.  
-* Files will only be included once in the resulting code, regardless of how many times a file is imported.
-* If used as a server, only modified files will be recompiled on subsequent requests.
 * Import statements can be placed anywhere and the dependency source code will replace it.
 * Compiling CoffeeScript and JavaScript source files are included out of the box.  You can add more 
   to the `importer.extensions` object.
+* Support for generating [source maps](https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k).
+* Support for framework or library dependencies in a search path as well as relative paths.
+* File extensions are optional and will be automatically resolved if not included.  
+* Files will only be included once in the resulting code, regardless of how many times a file is imported.
+* If used as a server, only modified files will be recompiled on subsequent requests.
+* Can be used to run the compiled code directly on the command line or `require`d in a Node module.
   
 ## Command line usage
 
@@ -29,26 +36,55 @@ When installed with `npm install importer -g`, a command line tool called `impor
 2. To output to a file, run `importer mainfile.coffee main.js`
 3. To compile and execute, run `importer mainfile.coffee`
 
-## Server example
+The command line options include:
 
-    http = require 'http'
-    importer = require 'importer'
+    -p, --port        Port to start server on       
+    -f, --frameworks  Path to frameworks directory    [default: "./frameworks"]
+    -m, --minify      Minifies the output JavaScript  [boolean]
+    -s, --source-map  Whether to output a source map  [boolean]
 
-    server = http.createServer (req, res) ->
-        res.writeHead(200)
+## Node module usage
+
+```coffeescript
+importer = require 'importer'
+pkg = importer.createPackage './path/to/main/file',
+    frameworkPath: '/path/to/frameworks'
+    sync: false               # whether compilation should be synchronous (default: false)
+    sourceMap: 'out.js.map'   # filename/url of the output sourcemap (default: null)
+    minify: false             # whether to minify the output with UglifyJS
+        
+# if asynchronous...
+pkg.build (err, result) ->
+    # result is an object containing 
+    # {code: 'compiled js', map: 'sourcemap if requested'}
+        
+# if synchronous...
+try
+    result = pkg.build()
+catch err
+    # do something
+        
+# to load and run the result as a node module...
+moduleExports = pkg.require()
+
+# or, without creating a package
+moduleExports = importer.require './path/to/main/file',
+    frameworkPath: '/path/to/frameworks'
+```
     
-        importer.build 'mainfile.coffee', (err, code) ->
-            if err
-                res.end 'throw "' + (err).replace(/"/g, "\\\"") + '"'
-            else
-                res.end code
-    
-    server.listen(8080)
+## Adding additional languages
 
 Currently, importing CoffeeScript and JavaScript files are supported but you can extend that to other languages that compile to
 JavaScript by adding an entry to the `importer.extensions` object.
 
-    importer.extensions['.lua'] = (code) -> lua.compile(code)
+```coffeescript
+importer.extensions['.lua'] = (code, generateSourceMap) -> 
+    return lua.compile(code)
+```
+        
+If a language compiler supporting source maps is used, you should first check the `generateSourceMap` option to be sure that
+they are desired by the user, and if so, return an object containing `{code: 'compiled js', map: 'sourcemap'}`.  Otherwise, 
+return a string.
     
 ## License
 

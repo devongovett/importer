@@ -1,7 +1,7 @@
 {
   "name": "importer",
   "description": "File importing for CoffeeScript and JavaScript",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "author": {
       "name": "Devon Govett",
       "email": "devongovett@gmail.com",
@@ -9,14 +9,17 @@
   },
   "repository": {
       "type": "git",
-      "url": "https://github.com/devongovett/import.git"
+      "url": "https://github.com/devongovett/importer.git"
   },
-  "bugs": "http://github.com/devongovett/import/issues",
+  "bugs": "http://github.com/devongovett/importer/issues",
   "dependencies": {
-      "optimist": ">=0.3.4"
+      "optimist": ">=0.3.4",
+      "async": ">=0.2.4",
+      "source-map": ">=0.1.8",
+      "uglify-js": ">=2.2"
   },
   "devDependencies": {
-      "coffee-script": ">=1.0"
+      "coffee-script": ">=1.6"
   },
   "scripts": {
       "prepublish": "./build.sh"

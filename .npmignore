@@ -2,3 +2,4 @@
 build.sh
 .git/
 .gitignore
+test/
