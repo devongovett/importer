@@ -151,7 +151,7 @@ class File
                     @cache.addSegment dep.offset
                         
                     # skip the import statement itself in the output
-                    @cache.stringOffset += dep.length
+                    @cache.compiledOffset += dep.length + 1
                     
                     # add the dependency
                     if deps[i]?
