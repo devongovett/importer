@@ -1,7 +1,7 @@
 {
   "name": "importer",
   "description": "File importing for CoffeeScript and JavaScript",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "author": {
       "name": "Devon Govett",
       "email": "devongovett@gmail.com",
@@ -19,7 +19,8 @@
       "uglify-js": ">=2.2"
   },
   "devDependencies": {
-      "coffee-script": ">=1.6"
+      "coffee-script": ">=1.6",
+      "qunit-cli": "*"
   },
   "scripts": {
       "prepublish": "./build.sh"
