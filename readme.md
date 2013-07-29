@@ -71,6 +71,17 @@ moduleExports = pkg.require()
 moduleExports = importer.require './path/to/main/file',
     frameworkPath: '/path/to/frameworks'
 ```
+
+## Connect/Express middleware
+
+```coffeescript
+# options supports all options documented above, plus the `url`
+# attribute giving the route to use to access the compiled JS.
+# Defaults to `"/#{path.basename(main, path.extname(main))}.js"`
+# Sourcemaps are automatically generated at "#{url}.js.map" unless
+# you turn them off by setting the `sourceMap` option to `false`.
+app.use importer.middleware('main.coffee', options)
+```
     
 ## Adding additional languages
 
