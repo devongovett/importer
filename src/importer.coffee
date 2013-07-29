@@ -1,3 +1,5 @@
+path = require 'path'
+
 # The regular expression used to find import statements
 IMPORT_RE = /(?:#|\/\/)import (".+"|<.+>);?$/gm
 exports.IMPORT_RE = IMPORT_RE
@@ -34,3 +36,22 @@ exports.createPackage = (main, options) ->
 exports.require = (main, options = {}) ->
     pkg = new Package main, options
     return pkg.require()
+    
+# Connect/Express middleware
+exports.middleware = (main, options = {}) ->
+  options.url ?= "/#{path.basename(main, path.extname(main))}.js"
+  options.sourceMap = "#{options.url}.map" unless options.sourceMap is false
+  pkg = new Package main, options
+  
+  return (req, res, next) ->
+    return next() unless req.url in [options.url, options.sourceMap]
+    
+    pkg.build (err, built) ->
+        res.type('.js')
+        
+        if err
+            res.end 'throw "' + err.message.replace(/"/g, "\\\"") + '"'
+        else if req.url is options.sourceMap
+            res.end built.map
+        else
+            res.end built.code
