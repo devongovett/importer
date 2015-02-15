@@ -1,3 +1,5 @@
+**Deprecated:** I am no longer using or maintaining this library. Please use [Browserify](https://github.com/substack/node-browserify) instead.
+
 Importer
 ========
 
